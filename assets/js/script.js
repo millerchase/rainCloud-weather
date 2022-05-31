@@ -44,8 +44,46 @@ const searchCityGeoLoc = city => {
     })
 };
 
+// create unix timestamp converter
+const unixTimestampHandler = dt => {
+    const day = new Date(dt).getDay();
+    const month = new Date(dt).getMonth();
+    const year = new Date(dt).getFullYear();
+
+    return `${month}/${day}/${year}`;
+}
+
+// setup open weather 
+const searchCurrentWeather = (city) => {
+
+    const openWeatherKey = '347d8731de2da6ee2f8084e5c4386031';
+    
+    return new Promise((rs, rj) => {
+        rs(
+            searchCityGeoLoc(city).then(res => {
+                return new Promise((rs, rj) => {
+                    rs(
+                        fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${res.lat}&lon=${res.long}&exclude=minutely,hourly,daily&units=imperial&appid=${openWeatherKey}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                console.log(data);
+                                
+                                let weather = {
+                                    date: unixTimestampHandler(data['current']['dt'] * 1000),
+                                    temp: data['current']['temp'],
+                                    wind: data['current']['deg'],
+                                    humidity: data['current']['humidity']
+                                }
+                                return weather
+                            })
+                            .catch(err => rj(err))
+                    )   
+                })
+            })
+        )
+    })
+}
 // weather API setup
-const openWeatherKey = '347d8731de2da6ee2f8084e5c4386031';
 
 // click listeners
 searchFormEl.addEventListener('submit', () => {
@@ -65,3 +103,7 @@ searchFormEl.addEventListener('submit', () => {
         console.log("input not a string");
     }
 });
+
+
+searchCurrentWeather('Austin')
+    .then(res => console.log(res))
