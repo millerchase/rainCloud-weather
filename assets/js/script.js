@@ -3,6 +3,21 @@ const citySearchInputEl = document.querySelector('#search-city');
 const searchBtn = document.querySelector("#search-btn");
 const searchFormEl = document.querySelector('#search-form');
 
+// luxon date wrapper setup
+const DateTime = luxon.DateTime;
+
+// grab the date (option to add how many days from current)
+const getDate = numDays => {
+    const dt = DateTime.now();
+
+    if (numDays) {
+        // return adjusted date if needed
+        return dt.plus({ days: numDays }).toLocaleString();
+    };
+
+    return dt.toLocaleString();
+}
+
 // search for city zip code via string
 const searchCityGeoLoc = city => {
     // geo services API setup
@@ -44,15 +59,6 @@ const searchCityGeoLoc = city => {
     })
 };
 
-// create unix timestamp converter
-const unixTimestampHandler = dt => {
-    const day = new Date(dt).getDay();
-    const month = new Date(dt).getMonth();
-    const year = new Date(dt).getFullYear();
-
-    return `${month}/${day}/${year}`;
-}
-
 // setup open weather 
 const searchCurrentWeather = (city) => {
 
@@ -69,10 +75,10 @@ const searchCurrentWeather = (city) => {
                                 console.log(data);
                                 
                                 let weather = {
-                                    date: unixTimestampHandler(data['current']['dt'] * 1000),
-                                    temp: data['current']['temp'],
-                                    wind: data['current']['deg'],
-                                    humidity: data['current']['humidity']
+                                    date: getDate(),
+                                    temp: `${data['current']['temp']}°f`,
+                                    wind: `${data['current']['wind_speed']} MPH`,
+                                    humidity: `${data['current']['humidity']}%`
                                 }
                                 return weather
                             })
@@ -83,7 +89,6 @@ const searchCurrentWeather = (city) => {
         )
     })
 }
-// weather API setup
 
 // click listeners
 searchFormEl.addEventListener('submit', () => {
