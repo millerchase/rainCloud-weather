@@ -20,6 +20,11 @@ const getDate = numDays => {
 
 // search for city zip code via string
 const searchCityGeoLoc = city => {
+    // remove any text after city (search won't work with it)
+    if(city.includes(' ')) {
+        city = city.split(' ')[0];
+        console.log(city);
+    }
     // geo services API setup
     const options = {
         method: 'GET',
@@ -39,10 +44,12 @@ const searchCityGeoLoc = city => {
                 .then(response => response.json())
                 .then(response => {
                     if (response['data'].length) {
+                        data = response['data'];
                         // seperate lat and long into search result
                         const searchResults = {
-                            lat: response['data'][0]['latitude'],
-                            long: response['data'][0]['longitude']
+                            name: data[0]['name'],
+                            lat: data[0]['latitude'],
+                            long: data[0]['longitude']
                         };
 
                         return searchResults;
@@ -66,19 +73,21 @@ const searchCurrentWeather = (city) => {
     
     return new Promise((rs, rj) => {
         rs(
-            searchCityGeoLoc(city).then(res => {
+            searchCityGeoLoc(city).then(location => {
                 return new Promise((rs, rj) => {
                     rs(
-                        fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${res.lat}&lon=${res.long}&exclude=minutely,hourly,daily&units=imperial&appid=${openWeatherKey}`)
-                            .then(res => res.json())
+                        fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${location.lat}&lon=${location.long}&exclude=minutely,hourly,daily&units=imperial&appid=${openWeatherKey}`)
+                            .then(location => location.json())
                             .then(data => {
-                                console.log(data);
+                                // console.log(data);
                                 
                                 let weather = {
+                                    location: location.name,
                                     date: getDate(),
                                     temp: `${data['current']['temp']}°f`,
                                     wind: `${data['current']['wind_speed']} MPH`,
-                                    humidity: `${data['current']['humidity']}%`
+                                    humidity: `${data['current']['humidity']}%`,
+                                    uvi: data['current']['uvi']
                                 }
                                 return weather
                             })
@@ -90,6 +99,8 @@ const searchCurrentWeather = (city) => {
     })
 }
 
+
+
 // click listeners
 searchFormEl.addEventListener('submit', () => {
     event.preventDefault();
@@ -98,12 +109,8 @@ searchFormEl.addEventListener('submit', () => {
     let city =  isNaN(citySearchInputEl.value) ? citySearchInputEl.value: null;
 
     if (city) {
-        searchCityGeoLoc(city)
-            .then(res => {
-                if (res) {
-                    console.log(res['lat'], res['long']);
-                }
-            })
+        searchCurrentWeather(city)
+            .then(res => console.log(res));
     } else {
         console.log("input not a string");
     }
