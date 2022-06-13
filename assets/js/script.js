@@ -16,9 +16,9 @@ const getDate = numDays => {
     };
 
     return dt.toLocaleString();
-}
+};
 
-// search for city zip code via string
+// search for city latitude and longitude (for overcoming current weather onecall query issues)
 const searchCityGeoLoc = city => {
     // remove any text after city (search won't work with it)
     if(city.includes(' ')) {
@@ -66,39 +66,87 @@ const searchCityGeoLoc = city => {
     })
 };
 
-// setup open weather 
+
+// Open weather calls
+
 const searchCurrentWeather = (city) => {
 
-    const openWeatherKey = '347d8731de2da6ee2f8084e5c4386031';
+    const key = '347d8731de2da6ee2f8084e5c4386031';
     
+    // create promise chain to manipulate response
     return new Promise((rs, rj) => {
         rs(
+            // get lat and long for city searched
             searchCityGeoLoc(city).then(location => {
                 return new Promise((rs, rj) => {
                     rs(
-                        fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${location.lat}&lon=${location.long}&exclude=minutely,hourly,daily&units=imperial&appid=${openWeatherKey}`)
-                            .then(location => location.json())
+                        fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${location.lat}&lon=${location.long}&exclude=minutely,hourly,daily&units=imperial&appid=${key}`)
+                            .then(weatherData => weatherData.json())
                             .then(data => {
-                                // console.log(data);
-                                
-                                let weather = {
+                                let currentWeather = {
                                     location: location.name,
                                     date: getDate(),
+                                    icon: data['current']['weather'][0]['icon'],
                                     temp: `${data['current']['temp']}°f`,
                                     wind: `${data['current']['wind_speed']} MPH`,
                                     humidity: `${data['current']['humidity']}%`,
                                     uvi: data['current']['uvi']
                                 }
-                                return weather
+                                return currentWeather
                             })
                             .catch(err => rj(err))
                     )   
-                })
+                });
             })
         )
-    })
-}
+    });
+};
 
+const searchFiveDayForecast = (city) => {
+    
+    const key = '347d8731de2da6ee2f8084e5c4386031';
+
+    // format city if state is also entered
+    if(city.includes(' ') && !city.includes(',')) {
+        city = city.split(' ').join(',');
+    } else if (city.includes(', ')) {
+        city = city.split(' ').join('');
+    }
+    
+    return new Promise((rs, rj) => {
+        rs(
+            fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=imperial&appid=${key}`)
+                .then(weatherData => weatherData.json())
+                .then(data => {
+                    // grab full list of 3hr updates over 5 day period
+                    const fullWeatherList = data.list;
+                    
+                    // filter for time slots marked 00:00:00 which appears to hold the new day's average
+                    const fiveDayList = fullWeatherList.filter((timeSlot) => timeSlot.dt_txt.includes("00:00:00"));
+
+                    // array to add future weather objects to
+                    const fiveDayForecast = [];
+
+                    // create weather objects for fiveDayForecast from fiveDayList
+                    for (let i = 0; i < fiveDayList.length; i++) {
+                        const daysWeather = fiveDayList[i];
+                        const daysFromToday = i + 1;
+                        const weatherObj = {
+                            date: getDate(daysFromToday),
+                            icon: daysWeather['weather'][0]['icon'],
+                            temp: daysWeather['main']['temp'],
+                            wind: daysWeather['wind']['speed'],
+                            humidity: daysWeather['main']['humidity']
+                        }
+                        fiveDayForecast.push(weatherObj);
+                    }
+                    
+                    return fiveDayForecast;
+                })
+                .catch(err => rj(err))
+        )   
+    });
+};
 
 
 // click listeners
@@ -108,14 +156,21 @@ searchFormEl.addEventListener('submit', () => {
     // assign city if input is a string, set to null otherwise
     let city =  isNaN(citySearchInputEl.value) ? citySearchInputEl.value: null;
 
-    if (city) {
-        searchCurrentWeather(city)
-            .then(res => console.log(res));
-    } else {
+    // validate city was recieved
+    if (!city) {
         console.log("input not a string");
+        return;
     }
+
+    // get current weather
+    searchCurrentWeather(city)
+        .then(res => console.log(res))
+    ;
+
+    searchFiveDayForecast(city)
+        .then(res => console.log(res));
 });
 
 
-searchCurrentWeather('Austin')
-    .then(res => console.log(res))
+// searchFiveDayForecast('Austin')
+//     .then(res => console.log(res))
