@@ -1,176 +1,174 @@
 // refs
-const citySearchInputEl = document.querySelector('#search-city');
+const citySearchInputEl = document.querySelector("#search-city");
 const searchBtn = document.querySelector("#search-btn");
-const searchFormEl = document.querySelector('#search-form');
+const searchFormEl = document.querySelector("#search-form");
 
 // luxon date wrapper setup
 const DateTime = luxon.DateTime;
 
 // grab the date (option to add how many days from current)
-const getDate = numDays => {
-    const dt = DateTime.now();
+const getDate = (numDays) => {
+  const dt = DateTime.now();
 
-    if (numDays) {
-        // return adjusted date if needed
-        return dt.plus({ days: numDays }).toLocaleString();
-    };
+  if (numDays) {
+    // return adjusted date if needed
+    return dt.plus({ days: numDays }).toLocaleString();
+  }
 
-    return dt.toLocaleString();
+  return dt.toLocaleString();
 };
 
 // search for city latitude and longitude (for overcoming current weather onecall query issues)
-const searchCityGeoLoc = city => {
-    // remove any text after city (search won't work with it)
-    if(city.includes(' ')) {
-        city = city.split(' ')[0];
-        console.log(city);
-    }
-    // geo services API setup
-    const options = {
-        method: 'GET',
-        headers: {
-            'X-RapidAPI-Host': 'geo-services-by-mvpc-com.p.rapidapi.com',
-            'X-RapidAPI-Key': '32e9f51d38mshf0b78320df8dcbap15c225jsn975d5508e897'
-        }
-    };
+const searchCityGeoLoc = (city) => {
+  // remove any text after city (search won't work with it)
+  if (city.includes(" ")) {
+    city = city.split(" ")[0];
+    console.log(city);
+  }
+  // geo services API setup
+  const options = {
+    method: "GET",
+    headers: {
+      "X-RapidAPI-Host": "geo-services-by-mvpc-com.p.rapidapi.com",
+      "X-RapidAPI-Key": "32e9f51d38mshf0b78320df8dcbap15c225jsn975d5508e897",
+    },
+  };
 
-    // set fetch url using the inputed city
-    const url = `https://geo-services-by-mvpc-com.p.rapidapi.com/cities/findcitiesfromtext?q=${city}&sort=population%2Cdesc&language=en`;
+  // set fetch url using the inputed city
+  const url = `https://geo-services-by-mvpc-com.p.rapidapi.com/cities/findcitiesfromtext?q=${city}&sort=population%2Cdesc&language=en`;
 
-    // wrap API request in promise to be able to use in a chain
-    return new Promise((rs, rj) => {
-        rs(
-            fetch(url, options)
-                .then(response => response.json())
-                .then(response => {
-                    if (response['data'].length) {
-                        data = response['data'];
-                        // seperate lat and long into search result
-                        const searchResults = {
-                            name: data[0]['name'],
-                            lat: data[0]['latitude'],
-                            long: data[0]['longitude']
-                        };
+  // wrap API request in promise to be able to use in a chain
+  return new Promise((rs, rj) => {
+    rs(
+      fetch(url, options)
+        .then((response) => response.json())
+        .then((response) => {
+          if (response["data"].length) {
+            data = response["data"];
+            // seperate lat and long into search result
+            const searchResults = {
+              name: data[0]["name"],
+              lat: data[0]["latitude"],
+              long: data[0]["longitude"],
+            };
 
-                        return searchResults;
-
-                    } else {
-                        // if search results return false
-                        return false;
-                    }
-                })
-                .catch(err => rj(err))
-
-        )
-
-    })
+            return searchResults;
+          } else {
+            // if search results return false
+            return false;
+          }
+        })
+        .catch((err) => rj(err))
+    );
+  });
 };
 
-
 // Open weather calls
-
 const searchCurrentWeather = (city) => {
+  const key = "347d8731de2da6ee2f8084e5c4386031";
 
-    const key = '347d8731de2da6ee2f8084e5c4386031';
-    
-    // create promise chain to manipulate response
-    return new Promise((rs, rj) => {
-        rs(
-            // get lat and long for city searched
-            searchCityGeoLoc(city).then(location => {
-                return new Promise((rs, rj) => {
-                    rs(
-                        fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${location.lat}&lon=${location.long}&exclude=minutely,hourly,daily&units=imperial&appid=${key}`)
-                            .then(weatherData => weatherData.json())
-                            .then(data => {
-                                let currentWeather = {
-                                    location: location.name,
-                                    date: getDate(),
-                                    icon: data['current']['weather'][0]['icon'],
-                                    temp: `${data['current']['temp']}°f`,
-                                    wind: `${data['current']['wind_speed']} MPH`,
-                                    humidity: `${data['current']['humidity']}%`,
-                                    uvi: data['current']['uvi']
-                                }
-                                return currentWeather
-                            })
-                            .catch(err => rj(err))
-                    )   
-                });
-            })
-        )
-    });
+  // create promise chain to manipulate response
+  return new Promise((rs, rj) => {
+    rs(
+      // get lat and long for city searched
+      searchCityGeoLoc(city).then((location) => {
+        return new Promise((rs, rj) => {
+          rs(
+            fetch(
+              `https://api.openweathermap.org/data/2.5/onecall?lat=${location.lat}&lon=${location.long}&exclude=minutely,hourly,daily&units=imperial&appid=${key}`
+            )
+              .then((weatherData) => weatherData.json())
+              .then((data) => {
+                let currentWeather = {
+                  location: location.name,
+                  date: getDate(),
+                  icon: data["current"]["weather"][0]["icon"],
+                  temp: `${data["current"]["temp"]}°f`,
+                  wind: `${data["current"]["wind_speed"]} MPH`,
+                  humidity: `${data["current"]["humidity"]}%`,
+                  uvi: data["current"]["uvi"],
+                };
+                return currentWeather;
+              })
+              .catch((err) => rj(err))
+          );
+        });
+      })
+    );
+  });
 };
 
 const searchFiveDayForecast = (city) => {
-    
-    const key = '347d8731de2da6ee2f8084e5c4386031';
+  const key = "347d8731de2da6ee2f8084e5c4386031";
 
-    // format city if state is also entered
-    if(city.includes(' ') && !city.includes(',')) {
-        city = city.split(' ').join(',');
-    } else if (city.includes(', ')) {
-        city = city.split(' ').join('');
-    }
-    
-    return new Promise((rs, rj) => {
-        rs(
-            fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=imperial&appid=${key}`)
-                .then(weatherData => weatherData.json())
-                .then(data => {
-                    // grab full list of 3hr updates over 5 day period
-                    const fullWeatherList = data.list;
-                    
-                    // filter for time slots marked 00:00:00 which appears to hold the new day's average
-                    const fiveDayList = fullWeatherList.filter((timeSlot) => timeSlot.dt_txt.includes("00:00:00"));
+  // format city if state is also entered
+  if (city.includes(" ") && !city.includes(",")) {
+    city = city.split(" ").join(",");
+  } else if (city.includes(", ")) {
+    city = city.split(" ").join("");
+  }
 
-                    // array to add future weather objects to
-                    const fiveDayForecast = [];
+  return new Promise((rs, rj) => {
+    rs(
+      fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=imperial&appid=${key}`
+      )
+        .then((weatherData) => weatherData.json())
+        .then((data) => {
+          // grab full list of 3hr updates over 5 day period
+          const fullWeatherList = data.list;
 
-                    // create weather objects for fiveDayForecast from fiveDayList
-                    for (let i = 0; i < fiveDayList.length; i++) {
-                        const daysWeather = fiveDayList[i];
-                        const daysFromToday = i + 1;
-                        const weatherObj = {
-                            date: getDate(daysFromToday),
-                            icon: daysWeather['weather'][0]['icon'],
-                            temp: daysWeather['main']['temp'],
-                            wind: daysWeather['wind']['speed'],
-                            humidity: daysWeather['main']['humidity']
-                        }
-                        fiveDayForecast.push(weatherObj);
-                    }
-                    
-                    return fiveDayForecast;
-                })
-                .catch(err => rj(err))
-        )   
-    });
+          // filter for time slots marked 00:00:00 which appears to hold the new day's average
+          const fiveDayList = fullWeatherList.filter((timeSlot) =>
+            timeSlot.dt_txt.includes("00:00:00")
+          );
+
+          // array to add future weather objects to
+          const fiveDayForecast = [];
+
+          // create weather objects for fiveDayForecast from fiveDayList
+          for (let i = 0; i < fiveDayList.length; i++) {
+            const daysWeather = fiveDayList[i];
+            const daysFromToday = i + 1;
+            const weatherObj = {
+              date: getDate(daysFromToday),
+              icon: daysWeather["weather"][0]["icon"],
+              temp: daysWeather["main"]["temp"],
+              wind: daysWeather["wind"]["speed"],
+              humidity: daysWeather["main"]["humidity"],
+            };
+            fiveDayForecast.push(weatherObj);
+          }
+
+          return fiveDayForecast;
+        })
+        .catch((err) => rj(err))
+    );
+  });
 };
 
-
 // click listeners
-searchFormEl.addEventListener('submit', () => {
-    event.preventDefault();
+searchFormEl.addEventListener("submit", () => {
+  event.preventDefault();
 
-    // assign city if input is a string, set to null otherwise
-    let city =  isNaN(citySearchInputEl.value) ? citySearchInputEl.value: null;
+  // assign city if input is a string, set to null otherwise
+  let city = isNaN(citySearchInputEl.value) ? citySearchInputEl.value : null;
 
-    // validate city was recieved
-    if (!city) {
-        console.log("input not a string");
-        return;
-    }
+  // validate city was recieved
+  if (!city) {
+    console.log("input not a string");
+    return;
+  }
 
-    // get current weather
-    searchCurrentWeather(city)
-        .then(res => console.log(res))
-    ;
+  // get current weather
+  searchCurrentWeather(city).then(
+    (res) => `Current Weather: ${console.log(res)}`
+  );
 
-    searchFiveDayForecast(city)
-        .then(res => console.log(res));
+  searchFiveDayForecast(city).then(
+    (res) => `FiveDay Forecast: ${console.log(res)}`
+  );
 });
-
 
 // searchFiveDayForecast('Austin')
 //     .then(res => console.log(res))
