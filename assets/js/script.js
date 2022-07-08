@@ -157,13 +157,13 @@ const displayCurrentWeather = weatherData => {
   const uvIndex = document.querySelector('#current-uv');
 
   if (!weatherData) {
-    currentCity.innerText = 'Search for a city';
+    currentCity.innerText = 'City not found';
     currentDate.innerText = `${getDate()}`;
     weatherIcon.innerText = '';
-    currentTemp.innerText = 'Search for a city';
-    currentWind.innerText = 'Search for a city';
-    currentHumidity.innerText = `Search for a city`;
-    uvIndex.innerText = `Search for a city`;
+    currentTemp.innerText = 'City not found';
+    currentWind.innerText = 'City not found';
+    currentHumidity.innerText = `City not found`;
+    uvIndex.innerText = `City not found`;
     return;
   }
 
@@ -181,6 +181,12 @@ const displayFiveDayForecast = weatherDataList => {
 
   // clear previous forecast list if exists
   forecastListEl.innerText = '';
+
+  if (!weatherDataList) {
+    forecastListEl.innerHTML = '<h3 class="no-city-found"> No City Found </h3>';
+    return;
+  }
+
   // create card for each day's weather data
   weatherDataList.forEach(weatherData => {
     const forecastCardEl = document.createElement('div');
@@ -225,21 +231,22 @@ searchFormEl.addEventListener('submit', () => {
   // assign city if input is a string, set to null otherwise
   let city = isNaN(citySearchInputEl.value) ? citySearchInputEl.value : null;
 
-  // validate city was recieved
+  // validate city was received
   if (!city) {
     console.log('input not a string');
     return;
   }
 
   // get current weather
-  searchCurrentWeather(city).then(weatherData => {
-    console.log(weatherData);
-    displayCurrentWeather(weatherData);
-  });
+  searchCurrentWeather(city).then(weatherData =>
+    displayCurrentWeather(weatherData)
+  );
 
+  // get five day forecast
   searchFiveDayForecast(city).then(weatherDataList =>
     displayFiveDayForecast(weatherDataList)
   );
 });
 
 displayCurrentWeather();
+displayFiveDayForecast();
