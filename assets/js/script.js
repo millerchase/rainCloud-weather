@@ -6,6 +6,9 @@ const searchFormEl = document.querySelector('#search-form');
 // luxon date wrapper setup
 const DateTime = luxon.DateTime;
 
+// make searchHistory global for loading and saving
+const searchHistory = [];
+
 // grab the date (option to add how many days from current)
 const getDate = numDays => {
   const dt = DateTime.now();
@@ -118,7 +121,7 @@ const searchFiveDayForecast = city => {
           // grab full list of 3hr updates over 5 day period
           const fullWeatherList = data.list;
 
-          // filter for time slots marked 00:00:00 which appears to hold the new day's average
+          // filter for time slots marked 00:00:00 which to holds the new day's average
           const fiveDayList = fullWeatherList.filter(timeSlot =>
             timeSlot.dt_txt.includes('00:00:00')
           );
@@ -223,6 +226,36 @@ const displayFiveDayForecast = weatherDataList => {
     forecastListEl.appendChild(forecastCardEl);
   });
 };
+
+// save search to history for quick search if valid
+const saveSearchHistory = weatherData => {
+  // make sure only save searches that work
+  if (!weatherData.location) {
+    return false;
+  }
+
+  // check if location is already in history
+  if (searchHistory.length) {
+    const dup = searchHistory.filter(
+      location => location === weatherData.location
+    );
+    if (dup) {
+      return false;
+    }
+  }
+
+  // save location to the beginning of searchHistory
+  searchHistory.unshift(weatherData.location);
+
+  // limit searchHistory to last eight searches
+  if (searchHistory.length > 8) {
+    searchHistory.pop();
+  }
+
+  localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+};
+
+// load search history into buttons for quick search
 
 // click listeners
 searchFormEl.addEventListener('submit', () => {
