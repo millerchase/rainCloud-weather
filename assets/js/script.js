@@ -335,6 +335,9 @@ searchFormEl.addEventListener('submit', () => {
     displayFiveDayForecast(weatherDataList)
   );
 
+  citySearchInputEl.value = '';
+  citySearchInputEl.blur();
+
   // short time out for search history to get sorted
   setTimeout(displaySearchHistory, 1000);
 });

@@ -53,13 +53,13 @@ header {
   border-bottom: 2px solid black;
   margin-bottom: 1rem;
 }
+
 #main {
   margin-top: 2rem;
+  flex-direction: column;
 }
 
 #search-section {
-  margin-left: 5%;
-  width: 20%;
   background-color: white;
   padding: 2rem;
   border-radius: 10px;
@@ -79,6 +79,11 @@ form {
   border: var(--main-color) solid 1px;
   border-radius: 5px;
   box-shadow: var(--bx-shadow-main);
+}
+
+#search-city:focus {
+  border: none;
+  box-shadow: none;
 }
 
 .btn {
@@ -131,8 +136,7 @@ form {
 }
 
 #weather-section {
-  width: 60%;
-  margin-left: 2vw;
+  margin-top: 1rem;
   padding-left: 1rem;
   background-color: white;
   border-radius: 10px;
@@ -149,7 +153,7 @@ form {
 }
 
 #current-uvi {
-  padding: 0.2rem;
+  padding: 0.2rem 0.5rem;
   color: white;
 }
 
@@ -202,23 +206,60 @@ form {
   padding: 1.8rem 0;
   border-radius: 5px;
   box-shadow: var(--bx-shadow-main);
+  flex-direction: column;
 }
 
 .weather-card {
   background-color: var(--bg-secondary);
   color: white;
   margin-right: 1rem;
+  margin-left: 1rem;
+  margin-bottom: 1rem;
   line-height: 2rem;
   padding: 1rem 1rem;
   border-radius: 5px;
   box-shadow: var(--bx-shadow-main);
 }
 
-#forecast-list div:first-of-type {
-  margin-left: 1rem;
-}
-
 .no-city-found {
   color: white;
   font-size: 2rem;
+}
+
+@media screen and (min-width: 819px) {
+  #forecast-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
+
+  #forecast-list div:first-of-type {
+    margin-left: 1rem;
+  }
+}
+
+@media screen and (min-width: 1019px) {
+  #main {
+    flex-direction: row;
+    margin-bottom: 2rem;
+    justify-content: space-around;
+  }
+
+  #search-section {
+    margin-left: 2vw;
+    width: 20%;
+  }
+
+  #weather-section {
+    margin-top: 0;
+    width: 70%;
+    margin-left: 2vw;
+    margin-right: 2vw;
+  }
+}
+
+@media screen and (min-width: 1345px) {
+  .weather-card {
+    margin-bottom: 0;
+  }
 }
