@@ -154,12 +154,12 @@ form {
 
 #current-uvi {
   padding: 0.2rem 0.5rem;
-  color: white;
 }
 
 /* UV Index classes */
 .low {
   background-color: green;
+  color: white;
 }
 
 .moderate {
@@ -169,14 +169,17 @@ form {
 
 .high {
   background-color: orange;
+  color: white;
 }
 
 .very-high {
   background-color: red;
+  color: white;
 }
 
 .extreme {
   background-color: var(--bg-main);
+  color: white;
 }
 
 #cw-second-line {
