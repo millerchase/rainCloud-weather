@@ -25,5 +25,6 @@ Favicon.ico - Tab title image
 
 HTML, CSS, JavaScript, ES6
 
-Contributors:
+## Contributors:
+
 Made with ❤️ By Chase Miller.
