@@ -199,9 +199,9 @@ const displayCurrentWeather = weatherData => {
     'src',
     `http://openweathermap.org/img/w/${weatherData.icon}.png`
   );
-  currentTemp.innerText = weatherData.temp;
-  currentWind.innerText = weatherData.wind;
-  currentHumidity.innerText = weatherData.humidity;
+  currentTemp.innerText = `${weatherData.temp} °F`;
+  currentWind.innerText = `${weatherData.wind} MPH`;
+  currentHumidity.innerText = `${weatherData.humidity} %`;
   uvIndex.innerText = weatherData.uvi;
   uvIndex.className = uviHandler(weatherData.uvi);
 };
