@@ -2,12 +2,13 @@
 const citySearchInputEl = document.querySelector('#search-city');
 const searchBtn = document.querySelector('#search-btn');
 const searchFormEl = document.querySelector('#search-form');
+const searchHistoryListEl = document.querySelector('#search-history');
 
 // luxon date wrapper setup
 const DateTime = luxon.DateTime;
 
 // make searchHistory global for loading and saving
-const searchHistory = [];
+let searchHistory = [];
 
 // grab the date (option to add how many days from current)
 const getDate = numDays => {
@@ -19,6 +20,25 @@ const getDate = numDays => {
   }
 
   return dt.toLocaleString();
+};
+
+// handler for assigning class to UV Index for color coding
+const uviHandler = uvi => {
+  switch (true) {
+    case uvi >= 11:
+      return 'extreme';
+    case uvi >= 8:
+      return 'very-high';
+    case uvi >= 6:
+      return 'high';
+    case uvi >= 3:
+      return 'moderate';
+    case uvi >= 0:
+      return 'low';
+    default:
+      console.log('Error in UVI handler');
+      break;
+  }
 };
 
 // search for city latitude and longitude (for overcoming current weather onecall query issues)
@@ -86,11 +106,13 @@ const searchCurrentWeather = city => {
                   location: location.name,
                   date: getDate(),
                   icon: data['current']['weather'][0]['icon'],
-                  temp: `${data['current']['temp']}°f`,
-                  wind: `${data['current']['wind_speed']} MPH`,
-                  humidity: `${data['current']['humidity']}%`,
+                  temp: `${data['current']['temp']}`,
+                  wind: `${data['current']['wind_speed']}`,
+                  humidity: `${data['current']['humidity']}`,
                   uvi: data['current']['uvi']
                 };
+
+                saveSearchHistory(currentWeather.location);
                 return currentWeather;
               })
               .catch(err => rj(err))
@@ -150,19 +172,20 @@ const searchFiveDayForecast = city => {
   });
 };
 
+// Displays
 const displayCurrentWeather = weatherData => {
   const currentCity = document.querySelector('#current-city');
   const currentDate = document.querySelector('#current-date');
-  const weatherIcon = document.querySelector('#current-icon');
+  const currentIcon = document.querySelector('#current-icon');
   const currentTemp = document.querySelector('#current-temp');
   const currentWind = document.querySelector('#current-wind');
   const currentHumidity = document.querySelector('#current-humidity');
-  const uvIndex = document.querySelector('#current-uv');
+  const uvIndex = document.querySelector('#current-uvi');
 
   if (!weatherData) {
     currentCity.innerText = 'City not found';
     currentDate.innerText = `${getDate()}`;
-    weatherIcon.innerText = '';
+    currentIcon.innerText = '';
     currentTemp.innerText = 'City not found';
     currentWind.innerText = 'City not found';
     currentHumidity.innerText = `City not found`;
@@ -171,12 +194,16 @@ const displayCurrentWeather = weatherData => {
   }
 
   currentCity.innerText = weatherData.location;
-  currentDate.innerText = weatherData.date;
-  weatherIcon.innerText = weatherData.icon;
-  currentTemp.innerText = `Temp: ${weatherData.temp} °F`;
-  currentWind.innerText = `Wind: ${weatherData.wind} MPH`;
-  currentHumidity.innerText = `Humidity: ${weatherData.humidity}`;
-  uvIndex.innerText = `UV index: ${weatherData.uvi}`;
+  currentDate.innerText = `( ${weatherData.date} )`;
+  currentIcon.setAttribute(
+    'src',
+    `http://openweathermap.org/img/w/${weatherData.icon}.png`
+  );
+  currentTemp.innerText = weatherData.temp;
+  currentWind.innerText = weatherData.wind;
+  currentHumidity.innerText = weatherData.humidity;
+  uvIndex.innerText = weatherData.uvi;
+  uvIndex.className = uviHandler(weatherData.uvi);
 };
 
 const displayFiveDayForecast = weatherDataList => {
@@ -193,6 +220,7 @@ const displayFiveDayForecast = weatherDataList => {
   // create card for each day's weather data
   weatherDataList.forEach(weatherData => {
     const forecastCardEl = document.createElement('div');
+    forecastCardEl.classList.add('weather-card');
 
     // add date
     const forecastDate = document.createElement('h3');
@@ -201,8 +229,12 @@ const displayFiveDayForecast = weatherDataList => {
     forecastCardEl.appendChild(forecastDate);
 
     // add icon
-    const forecastIcon = document.createElement('p');
-    forecastIcon.innerText = weatherData.icon;
+    const forecastIcon = document.createElement('img');
+    forecastIcon.setAttribute(
+      'src',
+      `http://openweathermap.org/img/w/${weatherData.icon}.png`
+    );
+    forecastIcon.classList.add('weather-icon');
     forecastCardEl.appendChild(forecastIcon);
 
     // add temp
@@ -227,25 +259,38 @@ const displayFiveDayForecast = weatherDataList => {
   });
 };
 
+const displaySearchHistory = () => {
+  const searchHistoryListEl = document.querySelector('#search-history');
+  searchHistoryListEl.innerText = '';
+  searchHistory.forEach(location => {
+    // create the button
+    const searchButtonEl = document.createElement('button');
+    searchButtonEl.setAttribute('id', `${location}-btn`);
+    searchButtonEl.classList.add('history-btn', 'btn');
+    searchButtonEl.innerText = `${location}`;
+
+    searchHistoryListEl.appendChild(searchButtonEl);
+  });
+};
+
 // save search to history for quick search if valid
-const saveSearchHistory = weatherData => {
+const saveSearchHistory = location => {
+  console.log(location);
   // make sure only save searches that work
-  if (!weatherData.location) {
+  if (!location) {
     return false;
   }
 
   // check if location is already in history
-  if (searchHistory.length) {
-    const dup = searchHistory.filter(
-      location => location === weatherData.location
-    );
-    if (dup) {
-      return false;
-    }
+  // if so move remove duplicate to move search to top
+  if (searchHistory.includes(location)) {
+    // filter out the duplicate
+    searchHistory = searchHistory.filter(dup => dup !== location);
   }
 
   // save location to the beginning of searchHistory
-  searchHistory.unshift(weatherData.location);
+  searchHistory.unshift(location);
+  console.log(searchHistory.length);
 
   // limit searchHistory to last eight searches
   if (searchHistory.length > 8) {
@@ -256,6 +301,16 @@ const saveSearchHistory = weatherData => {
 };
 
 // load search history into buttons for quick search
+const loadSearchHistory = () => {
+  searchHistory = JSON.parse(localStorage.getItem('searchHistory'));
+
+  if (!searchHistory) {
+    searchHistory = [];
+    return;
+  }
+
+  displaySearchHistory();
+};
 
 // click listeners
 searchFormEl.addEventListener('submit', () => {
@@ -279,7 +334,45 @@ searchFormEl.addEventListener('submit', () => {
   searchFiveDayForecast(city).then(weatherDataList =>
     displayFiveDayForecast(weatherDataList)
   );
+
+  // short time out for search history to get sorted
+  setTimeout(displaySearchHistory, 1000);
 });
 
-displayCurrentWeather();
-displayFiveDayForecast();
+searchHistoryListEl.addEventListener('click', event => {
+  if (event.target.classList.contains('history-btn')) {
+    const city = event.target.innerText;
+
+    // get current weather
+    searchCurrentWeather(city).then(weatherData =>
+      displayCurrentWeather(weatherData)
+    );
+
+    // get five day forecast
+    searchFiveDayForecast(city).then(weatherDataList =>
+      displayFiveDayForecast(weatherDataList)
+    );
+
+    // short time out for search history to get sorted
+    setTimeout(displaySearchHistory, 1000);
+  }
+});
+
+// Startup Code
+(init = () => {
+  loadSearchHistory();
+  if (searchHistory.length) {
+    // get current weather
+    searchCurrentWeather(searchHistory[0]).then(weatherData =>
+      displayCurrentWeather(weatherData)
+    );
+
+    // get five day forecast
+    searchFiveDayForecast(searchHistory[0]).then(weatherDataList =>
+      displayFiveDayForecast(weatherDataList)
+    );
+  } else {
+    displayCurrentWeather();
+    displayFiveDayForecast();
+  }
+})();

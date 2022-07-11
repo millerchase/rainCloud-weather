@@ -9,40 +9,52 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@2.4.0/build/global/luxon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gulzar&family=Open+Sans:wght@400;700&family=Roboto&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./assets/css/style.css" />
     <title>Rain Cloud Weather</title>
     <link rel="icon" href="./assets/images/favicon.ico" />
   </head>
   <body>
-    <header>
-      <h1>Weather Dashboard</h1>
+    <header class="container">
+      <h1 id="page-title">Weather Dashboard</h1>
     </header>
+    <div id="main" class="container">
+      <section id="search-section">
+        <form id="search-form">
+          <label for="search-city"><h2>Search for a City:</h2></label>
+          <input type="text" name="search-city" id="search-city" />
+          <button id="search-btn" class="btn" type="submit">Search</button>
+        </form>
+        <section id="search-history" class="container"></section>
+      </section>
 
-    <section id="search-section">
-      <form id="search-form">
-        <label for="search-city"><h2>Search for a City:</h2></label>
-        <input type="text" name="search-city" id="search-city" />
-        <button id="search-btn" class="btn" type="submit">Search</button>
-      </form>
-      <section id="search-history"></section>
-    </section>
+      <div id="weather-section">
+        <section id="current-weather">
+          <!-- demo / content to be generated dynamically -->
+          <div class="section-header"></div>
+          <h2 id="current-city" class="date"></h2>
+          <div class="container" id="cw-second-line">
+              <span id="current-date"></span>
+              <img id="current-icon" class="weather-icon" src=""></img>
+          </div>
+          <p>Temp: <span id="current-temp" class="temp"></span> °F</p>
+          <p>Wind: <span id="current-wind" class="wind"></span> MPH</p>
+          <p>Humidity: <span id="current-humidity" class="humidity"></span> %</p>
+          <p>UV Index: <span id="current-uvi" class="uvi"></span></p>
+        </section>
 
-    <section id="current-weather">
-      <!-- demo / content to be generated dynamically -->
-      <h2 id="current-city" class="date"></h2>
-      <span id="current-date"></span>
-      <span id="current-icon"><i class="fa-solid fa-cloud-rain"></i></span>
-      <p id="current-temp" class="temp">Temp: 76°f</p>
-      <p id="current-wind" class="wind">Wind: 12MPH</p>
-      <p id="current-humidity" class="humidity">40%</p>
-      <p id="current-uv" class="uv">0.47 (green)</p>
-    </section>
-
-    <section id="five-day-forecast">
-      <h3 id="five-day-title">5-Day Forecast:</h3>
-      <!-- will display dynamically generated cards -->
-      <div id="forecast-list"></div>
-    </section>
+        <section id="five-day-forecast">
+          <h2 id="five-day-title">5-Day Forecast:</h2>
+          <!-- will display dynamically generated cards -->
+          <div id="forecast-list" class="container"></div>
+        </section>
+      </div>
+    </div>
 
     <script src="./assets/js/script.js"></script>
   </body>
