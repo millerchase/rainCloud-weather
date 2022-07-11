@@ -1,7 +1,5 @@
 # RainCloud Weather
 
----
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Checkout the weather in your area! Receive the current weather conditions along with a five-day forecast.
@@ -9,6 +7,8 @@ Checkout the weather in your area! Receive the current weather conditions along 
 #### Check it out at:
 
 [https://millerchase.github.io/rainCloud-weather/](https://millerchase.github.io/rainCloud-weather/)
+
+---
 
 ![screenshot](assets/images/screenshot.png)
 
